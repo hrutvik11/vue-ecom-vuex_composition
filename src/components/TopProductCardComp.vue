@@ -33,16 +33,36 @@
   </CardComp>
 </template>
 <script>
+import { useStore } from "vuex";
 import CardComp from "../components/CardComp.vue";
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
   components: { CardComp },
-  methods: {
-    getTopProducts() {
-      const top = this.$store.getters.getTopProductsCount();
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const getISSaleLive = computed(() => {
+      return store.getters.getIsSaleLive;
+    });
+
+    const calculateProductSaleCost = (price, discount) => {
+      let costprice = parseFloat(price);
+      let data = costprice - (parseInt(discount) * costprice) / 100;
+      return data.toFixed(2);
+    };
+
+    const onProductClick = (pid) => {
+      router.push(`/productdetail/${pid}`);
+    };
+
+    const getTopProducts = () => {
+      const top = store.getters.getTopProductsCount();
 
       if (Object.keys(top).length > 0) {
-        const subCategories = this.$store?.getters?.getSubCategories;
+        const subCategories = store?.getters?.getSubCategories;
 
         const data = [...subCategories]
           .map((ele) => ele.products)
@@ -56,23 +76,14 @@ export default {
       } else {
         return [];
       }
-    },
-    calculateProductSaleCost(price, discount) {
-      let costprice = parseFloat(price);
-      let data = costprice - (parseInt(discount) * costprice) / 100;
-      return data.toFixed(2);
-    },
-    onProductClick(pid) {
-      this.$router.push(`/productdetail/${pid}`);
-    },
-  },
-  mounted() {
-    this.getTopProducts();
-  },
-  computed: {
-    getISSaleLive() {
-      return this.$store.getters.getIsSaleLive;
-    },
+    };
+
+    return {
+      getISSaleLive,
+      calculateProductSaleCost,
+      onProductClick,
+      getTopProducts,
+    };
   },
 };
 </script>

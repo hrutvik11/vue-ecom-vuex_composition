@@ -30,34 +30,39 @@
   </div>
 </template>
 <script>
+import { ref, computed } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+
 export default {
-  data() {
-    return { productData: null };
-  },
-  computed: {
-    fetchProductData() {
-      const subCategories = this.$store?.getters?.getSubCategories;
+  setup() {
+    const productData = ref(null);
+    const store = useStore();
+    const route = useRoute();
+
+    const fetchProductData = () => {
+      const subCategories = store?.getters?.getSubCategories;
 
       const data = [...subCategories]
         .map((ele) => ele.products)
         .flat()
         .find(
-          (el) =>
-            el.id.toString().trim() === this.$route.params.pid.toString().trim()
+          (el) => el.id.toString().trim() === route.params.pid.toString().trim()
         );
 
       if (data) {
-        this.productData = data;
-        let finalcount = this.$store.getters.getTopProductsCount(data.id);
-        this.$store.dispatch("addTopProducts", {
+        productData.value = data;
+        let finalcount = store.getters.getTopProductsCount(data.id);
+        store.dispatch("addTopProducts", {
           pid: data.id,
           count: finalcount ? finalcount + 1 : 1,
         });
       }
-    },
-  },
-  created() {
-    this.fetchProductData;
+    };
+
+    fetchProductData();
+
+    return { productData };
   },
 };
 </script>

@@ -6,20 +6,25 @@
   </div>
 </template>
 <script>
-import { RouterLink, RouterView } from "vue-router";
+import { RouterView, useRoute } from "vue-router";
 import HeaderComp from "./HeaderComp.vue";
 import FooterComp from "./FooterComp.vue";
+import { computed } from "vue";
 
 export default {
   components: { HeaderComp, FooterComp },
-  computed: {
-    IdlayoutVisible() {
-      if (this.$route?.meta?.hidelayout === true) {
+  setup() {
+    const route = useRoute();
+
+    const IdlayoutVisible = computed(() => {
+      if (route?.meta?.hidelayout === true) {
         return false;
       } else {
         return true;
       }
-    },
+    });
+
+    return { IdlayoutVisible };
   },
 };
 </script>

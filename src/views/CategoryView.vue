@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-[700px] p-4">
-    <div v-if="getCategoryID === 'all'" class="pl-10 pt-4">
+    <div v-if="getCategoryID() === 'all'" class="pl-10 pt-4">
       <p
         class="text-[#05A64A] mb-1 cursor-pointer"
         v-for="cat in fetchSubCategories"
@@ -26,29 +26,37 @@
   </div>
 </template>
 <script>
+import { useRoute, useRouter } from "vue-router";
 import CardComp from "../components/CardComp.vue";
+import { computed } from "vue";
+import { useStore } from "vuex";
 
 export default {
   components: {
     CardComp,
   },
-  methods: {
-    onSubCategoryClick(catID) {
-      this.$router.push(`/products/${catID}`);
-    },
-  },
-  computed: {
-    fetchSubCategories() {
-      if (this.getCategoryID === "all") {
-        return this.$store?.getters?.getSubCategories;
-      } else {
-        return this.$store.getters.getSubCategory(this.getCategoryID);
-      }
-    },
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const store = useStore();
 
-    getCategoryID() {
-      return this.$route.params.id;
-    },
+    const getCategoryID = () => {
+      return route.params.id;
+    };
+
+    const fetchSubCategories = computed(() => {
+      if (getCategoryID() === "all") {
+        return store?.getters?.getSubCategories;
+      } else {
+        return store.getters.getSubCategory(getCategoryID());
+      }
+    });
+
+    const onSubCategoryClick = (catID) => {
+      router.push(`/products/${catID}`);
+    };
+
+    return { getCategoryID, fetchSubCategories, onSubCategoryClick };
   },
 };
 </script>

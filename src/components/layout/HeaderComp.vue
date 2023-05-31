@@ -1,6 +1,4 @@
 <template>
-  <!-- <CartDrawerComp :isDrawerOpen="iscartOpen" :closeDrawer="closeDrawer" /> -->
-
   <header
     class="bg-[#515150] text-white h-[80px] flex items-center justify-center"
   >
@@ -23,7 +21,7 @@
         width="35"
         height="35"
         class="cursor-pointer"
-        @click="toggleCart"
+        @click="toggleCart()"
         id="menu-button"
       />
 
@@ -57,65 +55,76 @@
     <div v-if="!getISSaleLive" class="px-4 py-2">
       sale will be live in {{ time }}s
     </div>
-    <button v-if="isUserLogged()" class="ml-10" @click="onLogOutClick">
+    <button v-if="isUserLogged()" class="ml-10" @click="onLogOutClick()">
       Logout
     </button>
     <UserCartComp :iscartOpen="iscartOpen" />
   </header>
 </template>
 <script>
-// import CartDrawerComp from "./CartDrawerComp.vue";
 import { RouterLink } from "vue-router";
 import { isUserLoggedIn, onLogOut } from "../../utils/helpers";
 import UserCartComp from "../UserCartComp.vue";
+import { ref, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 
 export default {
   components: {
     UserCartComp,
   },
-  data() {
-    return {
-      iscartOpen: false,
-      userData: null,
-      time: 20,
-    };
-  },
-  methods: {
-    onLogOutClick() {
+  setup() {
+    const store = useStore();
+
+    const iscartOpen = ref(false);
+    const userData = ref(null);
+    const time = ref(20);
+
+    const onLogOutClick = () => {
       onLogOut();
-      this.$store.commit("SET_USER_DATA", null);
-    },
-    toggleCart() {
-      this.iscartOpen = !this.iscartOpen;
-    },
-    closeDrawer() {
-      this.iscartOpen = false;
-    },
-    getUserLoggedInDetails(key) {
-      if (this.$store?.getters?.getUserData) {
-        return this.$store?.getters?.getUserData[key];
+      store.commit("SET_USER_DATA", null);
+    };
+
+    const toggleCart = () => {
+      iscartOpen.value = !iscartOpen.value;
+    };
+
+    const getUserLoggedInDetails = (key) => {
+      if (store?.getters?.getUserData) {
+        return store?.getters?.getUserData[key];
       } else {
         return "";
       }
-    },
-    isUserLogged() {
+    };
+
+    const isUserLogged = () => {
       return isUserLoggedIn();
-    },
-  },
-  computed: {
-    getISSaleLive() {
-      return this.$store.getters.getIsSaleLive;
-    },
-  },
-  mounted() {
-    const interval = setInterval(() => {
-      this.time--;
-    }, 1000);
-    const time = setTimeout(() => {
-      this.$store.commit("SET_SALE", true);
-      clearTimeout(time);
-      clearInterval(interval);
-    }, this.time * 1000);
+    };
+
+    const getISSaleLive = computed(() => {
+      return store.getters.getIsSaleLive;
+    });
+
+    onMounted(() => {
+      const interval = setInterval(() => {
+        time.value--;
+      }, 1000);
+      const timee = setTimeout(() => {
+        store.commit("SET_SALE", true);
+        clearTimeout(timee);
+        clearInterval(interval);
+      }, time.value * 1000);
+    });
+
+    return {
+      iscartOpen,
+      userData,
+      time,
+      onLogOutClick,
+      toggleCart,
+      getUserLoggedInDetails,
+      isUserLogged,
+      getISSaleLive,
+    };
   },
 };
 </script>

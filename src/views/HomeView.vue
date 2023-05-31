@@ -30,17 +30,19 @@
 <script>
 import { RouterLink } from "vue-router";
 import TopProductCardComp from "../components/TopProductCardComp.vue";
+import { computed } from "vue";
+import { useStore } from "vuex";
 
 export default {
-  data() {
-    return {};
-  },
-  computed: {
-    fetchCategories() {
-      return this.$store?.getters?.getCategories;
-    },
-  },
   components: { TopProductCardComp },
+  setup() {
+    const store = useStore();
+
+    const fetchCategories = computed(() => {
+      return store?.getters?.getCategories;
+    });
+
+    return { fetchCategories };
+  },
 };
 </script>
-<style></style>

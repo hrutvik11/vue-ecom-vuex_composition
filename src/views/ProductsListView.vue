@@ -34,7 +34,7 @@
               >
                 ${{ products.price }}
               </div>
-              <div class="text-[18px] font-semibold">
+              <div class="text-[18px] font-semibold" v-if="getISSaleLive">
                 ${{
                   calculateProductSaleCost(
                     products.price,
@@ -61,60 +61,62 @@
 import CardComp from "../components/CardComp.vue";
 import { getUserID } from "../utils/helpers";
 
+import { computed } from "vue";
+import { useStore } from "vuex";
+import { useRoute, useRouter } from "vue-router";
+
 export default {
-  data() {
-    return { subcategoryid: null };
-  },
   components: {
     CardComp,
   },
-  methods: {
-    onProductClick(pid) {
-      this.$router.push(`/productdetail/${pid}`);
-    },
-    AddtoCart(pid) {
-      this.$store.dispatch("addToUserCart", { pid, uid: getUserID() });
-    },
-    isAddedInCart(pid) {
-      const usertcart = this.$store.getters.getUserCart(getUserID());
 
-      if (usertcart) {
-        if (usertcart[pid]) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    },
-    fetchProductCountInCart(pid) {
-      return this.$store?.getters?.getCartProductCount(getUserID(), pid);
-    },
-    calculateProductSaleCost(price, discount) {
+  setup() {
+    const store = useStore();
+    const route = useRoute();
+    const router = useRouter();
+
+    const onProductClick = (pid) => {
+      router.push(`/productdetail/${pid}`);
+    };
+
+    const AddtoCart = (pid) => {
+      store.dispatch("addToUserCart", { pid, uid: getUserID() });
+    };
+
+    const fetchProductCountInCart = (pid) => {
+      return store?.getters?.getCartProductCount(getUserID(), pid);
+    };
+
+    const calculateProductSaleCost = (price, discount) => {
       let costprice = parseFloat(price);
       let data = costprice - (parseInt(discount) * costprice) / 100;
       return parseFloat(data.toFixed(2));
-    },
-  },
-  computed: {
-    fetchProducts() {
-      const subCategories = this.$store?.getters?.getSubCategories;
+    };
+
+    const fetchProducts = computed(() => {
+      const subCategories = store?.getters?.getSubCategories;
 
       const productsData = [...subCategories].find(
-        (el) =>
-          el.id.toString().trim() === this.$route.params.pid.toString().trim()
+        (el) => el.id.toString().trim() === route.params.pid.toString().trim()
       );
 
       if (productsData.products && productsData.products.length > 0) {
-        this.subcategoryid = productsData.id;
         return productsData.products;
       }
-    },
-    getISSaleLive() {
-      return this.$store.getters.getIsSaleLive;
-    },
+    });
+
+    const getISSaleLive = computed(() => {
+      return store.getters.getIsSaleLive;
+    });
+
+    return {
+      fetchProducts,
+      getISSaleLive,
+      onProductClick,
+      AddtoCart,
+      fetchProductCountInCart,
+      calculateProductSaleCost,
+    };
   },
 };
 </script>
-<style></style>

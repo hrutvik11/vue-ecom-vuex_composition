@@ -63,36 +63,42 @@
   </DropDownComp>
 </template>
 <script>
+import { useStore } from "vuex";
 import { getUserID } from "../utils/helpers";
 import DropDownComp from "./DropDownComp.vue";
+import { ref, computed } from "vue";
 
 export default {
-  data() {
-    return { Total: 0, discountedTotal: 0 };
-  },
   components: { DropDownComp },
   props: ["iscartOpen"],
-  methods: {
-    changeProductCount(identifier, pid) {
+  setup() {
+    const store = useStore();
+
+    const Total = ref(0);
+    const discountedTotal = ref(0);
+
+    const changeProductCount = (identifier, pid) => {
       if (identifier === "+") {
-        this.$store.dispatch("increaseCartCount", { pid, uid: getUserID() });
+        store.dispatch("increaseCartCount", { pid, uid: getUserID() });
       } else {
-        this.$store.dispatch("decreaseCartCount", { pid, uid: getUserID() });
+        store.dispatch("decreaseCartCount", { pid, uid: getUserID() });
       }
-    },
-    calculateProductCost(count, price) {
+    };
+
+    const calculateProductCost = (count, price) => {
       return parseFloat(price) * parseInt(count);
-    },
-    calculateProductSaleCost(count, price, discount) {
+    };
+    const calculateProductSaleCost = (count, price, discount) => {
       let costprice = parseFloat(price) * parseInt(count);
       let data = costprice - (parseInt(discount) * costprice) / 100;
       return parseFloat(data.toFixed(2));
-    },
-    fetchUserCart() {
-      const usertcart = this.$store.getters.getUserCart(getUserID());
+    };
+
+    const fetchUserCart = () => {
+      const usertcart = store.getters.getUserCart(getUserID());
 
       if (usertcart) {
-        const subCategories = this.$store?.getters?.getSubCategories;
+        const subCategories = store?.getters?.getSubCategories;
         let total = 0;
         let discountTotal = 0;
 
@@ -101,8 +107,8 @@ export default {
           .flat()
           .filter((el) => usertcart[el.id] !== undefined)
           .map((ele) => {
-            total += this.calculateProductCost(usertcart[ele.id], ele.price);
-            discountTotal += this.calculateProductSaleCost(
+            total += calculateProductCost(usertcart[ele.id], ele.price);
+            discountTotal += calculateProductSaleCost(
               usertcart[ele.id],
               ele.price,
               ele.saleDiscount
@@ -111,19 +117,28 @@ export default {
             return { ...ele, count: usertcart[ele.id] };
           });
 
-        this.Total = total;
-        this.discountedTotal = discountTotal;
+        Total.value = total;
+        discountedTotal.value = discountTotal;
         return data;
       } else {
-        this.Total = 0;
+        Total.value = 0;
         return [];
       }
-    },
-  },
-  computed: {
-    getISSaleLive() {
-      return this.$store.getters.getIsSaleLive;
-    },
+    };
+
+    const getISSaleLive = computed(() => {
+      return store.getters.getIsSaleLive;
+    });
+
+    return {
+      Total,
+      discountedTotal,
+      changeProductCount,
+      calculateProductCost,
+      calculateProductSaleCost,
+      fetchUserCart,
+      getISSaleLive,
+    };
   },
 };
 </script>
